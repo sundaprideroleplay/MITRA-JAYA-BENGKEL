@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MITRA JAYA BENGKEL</title>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Plus+Jakarta+Sans:wght@400;600;800&family=Space+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --emerald: #10b981; --vintage-yellow: #facc15; --carbon: #1a1a1a; --soft-white: #f8fafc; --glass: rgba(255, 255, 255, 0.03); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--carbon); color: var(--soft-white); margin: 0; min-height: 100vh; overflow-x: hidden; }
+        .bg-grid { position: fixed; inset: 0; z-index: -1; background-image: linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px); background-size: 40px 40px; }
+        .font-retro { font-family: 'Bungee', cursive; }
+        .font-mono { font-family: 'Space Mono', monospace; }
+        .glass-panel { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px); border-radius: 1rem; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .sidebar { width: 280px; height: 100vh; position: fixed; left: 0; top: 0; background: #111; border-right: 2px solid rgba(255,255,255,0.05); z-index: 50; }
+        .main-content { margin-left: 280px; padding: 40px; }
+        .btn-emerald { background: var(--emerald); color: var(--carbon); cursor: pointer; transition: 0.2s; }
+        .btn-emerald:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
+        input, textarea, select { background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; outline: none; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal.active { display: flex; }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--emerald); border-radius: 10px; }
+        .service-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .service-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <section id="page-landing" class="page active">
+        <nav class="p-8 flex justify-between items-center max-w-7xl mx-auto">
+            <div class="flex items-center gap-4">
+                <img src="logo mitra jaya.jpg" alt="Logo" class="w-12 h-12 rounded-lg border-2 border-emerald-500 shadow-lg object-cover">
+                <h1 class="font-retro text-2xl tracking-tighter text-emerald-500">MITRA JAYA</h1>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="showPage('page-staff')" class="px-6 py-2 rounded-lg font-retro text-xs border border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-all">STAFF PORTAL</button>
+                <button onclick="promptAdmin()" class="px-6 py-2 rounded-lg font-retro text-xs bg-white text-black hover:bg-gray-200">ADMIN</button>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-8 py-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center mb-20">
+                <div class="space-y-6">
+                    <h2 class="font-retro text-7xl leading-none uppercase">SOLUSI MOBIL<br><span class="text-emerald-500">GANTENG</span></h2>
+                    <p class="font-mono text-gray-400">Pusat modifikasi dan perawatan kendaraan kelas sultan dengan sistem transparansi total.</p>
+                    <div id="btn-rekrut-container">
+                        <button onclick="openModal('modal-lamaran')" class="px-10 py-4 rounded-xl font-retro text-lg btn-emerald">DAFTAR SEKARANG</button>
+                    </div>
+                </div>
+                <div class="glass-panel p-8 border-l-4 border-emerald-500">
+                    <h3 class="font-retro text-xl mb-6 flex items-center gap-3"><i class="fas fa-scroll text-emerald-500"></i> WORKSHOP RULES</h3>
+                    <div id="regulasi-display" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-panel p-8 border-t-2 border-emerald-500 service-card">
+                    <div class="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-tools text-2xl text-emerald-500"></i>
+                    </div>
+                    <h4 class="font-retro text-xl mb-3 text-white">FULL TUNE UP</h4>
+                    <p class="text-sm font-mono text-gray-400 leading-relaxed">Kembalikan performa mesin ke kondisi prima dengan kalibrasi presisi tinggi.</p>
+                </div>
+                <div class="glass-panel p-8 border-t-2 border-blue-500 service-card">
+                    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-microchip text-2xl text-blue-500"></i>
+                    </div>
+                    <h4 class="font-retro text-xl mb-3 text-white">SWAB ENGINE</h4>
+                    <p class="text-sm font-mono text-gray-400 leading-relaxed">Upgrade jantung pacu kendaraan Anda menggunakan teknologi mesin terbaru.</p>
+                </div>
+                <div class="glass-panel p-8 border-t-2 border-yellow-500 service-card">
+                    <div class="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-car-side text-2xl text-yellow-500"></i>
+                    </div>
+                    <h4 class="font-retro text-xl mb-3 text-white">EXTREME MODS</h4>
+                    <p class="text-sm font-mono text-gray-400 leading-relaxed">Ubah penampilan kendaraan Anda menjadi pusat perhatian di jalanan.</p>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <section id="page-admin" class="page">
+        <div class="sidebar flex flex-col p-8">
+            <h3 class="font-retro text-emerald-500 text-lg mb-10">ADMIN SYSTEM</h3>
+            <nav class="space-y-3 flex-1">
+                <button onclick="switchAdminTab('adm-finance')" class="w-full text-left p-4 rounded-xl font-retro text-[10px] hover:bg-emerald-500/10 flex items-center gap-3"><i class="fas fa-wallet"></i> KEUANGAN</button>
+                <button onclick="switchAdminTab('adm-staff')" class="w-full text-left p-4 rounded-xl font-retro text-[10px] hover:bg-emerald-500/10 flex items-center gap-3"><i class="fas fa-id-badge"></i> DATABASE STAFF</button>
+                <button onclick="switchAdminTab('adm-applicants')" class="w-full text-left p-4 rounded-xl font-retro text-[10px] hover:bg-emerald-500/10 flex items-center gap-3"><i class="fas fa-file-alt"></i> LAMARAN <span id="notif-app" class="ml-auto bg-emerald-500 text-black px-2 rounded-md">0</span></button>
+                <button onclick="switchAdminTab('adm-settings')" class="w-full text-left p-4 rounded-xl font-retro text-[10px] hover:bg-emerald-500/10 flex items-center gap-3"><i class="fas fa-cog"></i> PENGATURAN</button>
+            </nav>
+            <button onclick="showPage('page-landing')" class="w-full p-4 rounded-xl border border-white/10 font-retro text-[10px] hover:bg-white hover:text-black transition-all">LOGOUT</button>
+        </div>
+
+        <div class="main-content">
+            <div id="adm-finance" class="adm-panel space-y-8">
+                <h2 class="font-retro text-3xl text-white">FINANCE <span class="text-emerald-500">MANAGEMENT</span></h2>
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="glass-panel p-6 border-b-4 border-blue-500"><p class="text-[10px] font-retro text-gray-500 uppercase">Operasional (50%)</p><h3 id="bal-opr" class="font-mono text-xl">Rp 0</h3></div>
+                    <div class="glass-panel p-6 border-b-4 border-emerald-500"><p class="text-[10px] font-retro text-gray-500 uppercase">Gaji (30%)</p><h3 id="bal-gaji" class="font-mono text-xl">Rp 0</h3></div>
+                    <div class="glass-panel p-6 border-b-4 border-yellow-500"><p class="text-[10px] font-retro text-gray-500 uppercase">Owner (20%)</p><h3 id="bal-owner" class="font-mono text-xl">Rp 0</h3></div>
+                    <div class="bg-emerald-500 p-6 rounded-2xl text-black font-bold"><p class="text-[10px] font-retro opacity-70 uppercase">Total Kas</p><h3 id="bal-total" class="font-mono text-xl">Rp 0</h3></div>
+                </div>
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="glass-panel p-6">
+                        <input type="text" id="tx-desc" class="w-full p-4 rounded-xl mb-3 text-sm" placeholder="Keterangan...">
+                        <input type="number" id="tx-amt" class="w-full p-4 rounded-xl mb-4 text-sm" placeholder="Nominal Rp">
+                        <button onclick="processFinance('income')" class="w-full p-4 btn-emerald rounded-xl font-retro text-[10px] mb-4">DEPOSIT KAS</button>
+                        <select id="tx-target" class="w-full p-3 rounded-xl mb-3 text-[10px] font-mono">
+                            <option value="opr">OPERASIONAL</option>
+                            <option value="gaji">GAJI</option>
+                            <option value="owner">OWNER</option>
+                        </select>
+                        <button onclick="processFinance('withdraw')" class="w-full p-4 border border-red-500 text-red-500 rounded-xl font-retro text-[10px] hover:bg-red-500 hover:text-black transition-all">WITHDRAW</button>
+                    </div>
+                    <div class="glass-panel col-span-2 p-6 overflow-y-auto max-h-[400px] custom-scroll">
+                        <table class="w-full text-left font-mono text-xs">
+                            <tbody id="log-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adm-staff" class="adm-panel hidden space-y-8">
+                <div class="flex justify-between items-center">
+                    <h2 class="font-retro text-3xl">STAFF <span class="text-emerald-500">DATABASE</span></h2>
+                    <div class="flex gap-2">
+                        <button onclick="exportGajiWord()" class="bg-blue-600 px-4 py-2 rounded font-retro text-[10px]">EXPORT GAJI</button>
+                        <button onclick="resetWeeklyDuty()" class="bg-red-600 px-4 py-2 rounded font-retro text-[10px]">RESET MINGGUAN</button>
+                    </div>
+                </div>
+                <div class="glass-panel overflow-y-auto max-h-[600px] custom-scroll">
+                    <table class="w-full text-left font-mono text-sm">
+                        <thead class="bg-white/5 font-retro text-[10px] sticky top-0">
+                            <tr><th class="p-6">Nama</th><th class="p-6 text-center">PIN</th><th class="p-6 text-center">Menit</th><th class="p-6 text-right">Gaji</th><th class="p-6 text-center">Opsi</th></tr>
+                        </thead>
+                        <tbody id="adm-staff-list"></tbody>
+                        <tfoot class="bg-emerald-500/10 border-t-2 border-emerald-500/50">
+                            <tr>
+                                <td colspan="3" class="p-6 font-retro text-xs text-emerald-500">TOTAL PENGELUARAN GAJI</td>
+                                <td id="total-payroll-amount" class="p-6 text-right font-mono text-lg font-bold text-emerald-500">Rp 0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div id="adm-applicants" class="adm-panel hidden">
+                <h2 class="font-retro text-3xl mb-8 uppercase">Pelamar <span class="text-emerald-500">Masuk</span></h2>
+                <div id="app-list-admin" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+
+            <div id="adm-settings" class="adm-panel hidden space-y-8">
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="glass-panel p-8">
+                        <h3 class="font-retro text-xs text-emerald-500 mb-6 uppercase">Setting Gaji (Rp/Menit)</h3>
+                        <div id="salary-settings-list" class="space-y-4"></div>
+                        <button onclick="saveSalaryRates()" class="w-full mt-6 p-4 rounded-xl border border-emerald-500 text-emerald-500 font-retro text-[10px]">SIMPAN GAJI</button>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="glass-panel p-8">
+                            <h3 class="font-retro text-xs text-emerald-500 mb-4 uppercase">Workshop Rules</h3>
+                            <textarea id="edit-regulasi" class="w-full h-32 p-4 rounded-xl text-xs mb-4 font-mono"></textarea>
+                            <button onclick="saveRegulasi()" class="w-full p-4 btn-emerald rounded-xl font-retro text-[10px]">UPDATE REGULASI</button>
+                        </div>
+                        <button id="toggle-rec-btn" onclick="toggleRecruitment()" class="w-full p-4 rounded-xl font-retro text-[10px] border"></button>
+                        <button onclick="resetData()" class="w-full text-red-500 font-retro text-[8px] uppercase opacity-50 hover:opacity-100">Wipe System Memory</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="page-staff" class="page">
+        <nav class="p-8 flex justify-between items-center max-w-6xl mx-auto">
+            <h2 class="font-retro text-2xl uppercase text-white">DUTY <span class="text-emerald-500">DASHBOARD</span></h2>
+            <button onclick="showPage('page-landing')" class="px-6 py-2 rounded-lg font-retro text-xs border text-white">KEMBALI</button>
+        </nav>
+        <div class="max-w-6xl mx-auto px-8 grid grid-cols-12 gap-8 pb-20">
+            <div class="col-span-12 lg:col-span-4">
+                <div class="glass-panel p-6 border-t-4 border-yellow-500">
+                    <h3 class="font-retro text-sm mb-6 flex items-center gap-3 text-white"><i class="fas fa-medal text-yellow-500"></i> TOP EMPLOYEES</h3>
+                    <div id="staff-leaderboard" class="space-y-4"></div>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto custom-scroll" id="staff-portal-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal-lamaran" class="modal">
+        <div class="glass-panel p-10 w-full max-w-md bg-zinc-900">
+            <h2 class="font-retro text-3xl mb-8 text-emerald-500 text-center uppercase">REKRUTMEN</h2>
+            <input type="text" id="app-nama" placeholder="Nama Lengkap" class="w-full p-4 rounded-xl mb-4 text-sm uppercase">
+            <input type="text" id="app-contact" placeholder="ID Discord / WhatsApp" class="w-full p-4 rounded-xl mb-4 text-sm">
+            <textarea id="app-bio" placeholder="Alasan melamar & pengalaman..." class="w-full p-4 rounded-xl h-32 mb-6 text-sm"></textarea>
+            <div class="flex gap-4">
+                <button onclick="closeModal('modal-lamaran')" class="flex-1 p-4 border rounded-xl font-retro text-xs text-white">BATAL</button>
+                <button onclick="submitLamaran()" class="flex-1 btn-emerald p-4 rounded-xl font-retro text-xs">KIRIM</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Konfigurasi Firebase Anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyCf3ddTOuMWr_-XAE1CyuHEXkfuX1T7mU0",
+            authDomain: "bengkel-mitra-jaya.firebaseapp.com",
+            projectId: "bengkel-mitra-jaya",
+            storageBucket: "bengkel-mitra-jaya.firebasestorage.app",
+            messagingSenderId: "48806045268",
+            appId: "1:48806045268:web:de18222f8f47c89ba32fc1",
+            databaseURL: "https://bengkel-mitra-jaya-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const dbRT = getDatabase(app);
+        const mjRef = ref(dbRT, 'mj_system');
+
+        let db = {
+            staff: [], logs: [], applicants: [], isRecruiting: true, 
+            regulasi: "Utamakan Kualitas.\nLapor setiap transaksi.\nGunakan seragam saat duty.",
+            rates: { "Manager": 3000, "Expert": 2000, "Junior": 1000, "Recruit": 500 }
+        };
+
+        // --- CORE FUNCTIONS ---
+
+        // Listen data dari Firebase (Realtime)
+        onValue(mjRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Konversi object Firebase ke array untuk staff, logs, dan applicants
+                db = {
+                    ...data,
+                    staff: data.staff ? Object.values(data.staff) : [],
+                    logs: data.logs ? Object.values(data.logs).reverse() : [],
+                    applicants: data.applicants ? Object.values(data.applicants) : [],
+                    rates: data.rates || db.rates,
+                    regulasi: data.regulasi || db.regulasi
+                };
+            }
+            render();
+        });
+
+        const syncToFirebase = () => {
+            // Kita simpan manual untuk data non-list atau update semua
+            // Namun lebih baik update per-node untuk efisiensi
+            update(mjRef, {
+                isRecruiting: db.isRecruiting,
+                regulasi: db.regulasi,
+                rates: db.rates
+            });
+        };
+
+        window.showPage = (id) => { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+        window.switchAdminTab = (id) => { document.querySelectorAll('.adm-panel').forEach(p => p.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
+        window.promptAdmin = () => { if(prompt("ACCESS CODE:") === "0000") showPage('page-admin'); };
+        window.openModal = (id) => { document.getElementById(id).classList.add('active'); };
+        window.closeModal = (id) => { document.getElementById(id).classList.remove('active'); };
+
+        function calculateBalance() {
+            let bal = { opr: 0, gaji: 0, owner: 0, total: 0 };
+            db.logs.forEach(l => {
+                if(l.type === 'income') { bal.opr += l.amt * 0.5; bal.gaji += l.amt * 0.3; bal.owner += l.amt * 0.2; } 
+                else if(l.type === 'withdraw') { bal[l.target] -= Math.abs(l.amt); }
+            });
+            bal.total = bal.opr + bal.gaji + bal.owner;
+            return bal;
+        }
+
+        window.processFinance = (type) => {
+            const desc = document.getElementById('tx-desc').value;
+            const amt = parseInt(document.getElementById('tx-amt').value);
+            const target = document.getElementById('tx-target').value;
+            if(!desc || isNaN(amt) || amt <= 0) return alert("Data tidak valid!");
+
+            const newLogRef = push(ref(dbRT, 'mj_system/logs'));
+            const logData = {
+                id: newLogRef.key,
+                desc: type === 'withdraw' ? `[OUT] ${desc.toUpperCase()}` : desc.toUpperCase(),
+                amt,
+                type,
+                target: type === 'withdraw' ? target : 'income',
+                date: new Date().toLocaleString('id-ID')
+            };
+
+            if(type === 'withdraw') {
+                const currentBal = calculateBalance();
+                if(amt > currentBal[target]) return alert(`Saldo tidak cukup!`);
+            }
+            
+            set(newLogRef, logData);
+            document.getElementById('tx-desc').value = "";
+            document.getElementById('tx-amt').value = "";
+        };
+
+        window.deleteLog = (id) => {
+            remove(ref(dbRT, `mj_system/logs/${id}`));
+        };
+
+        window.toggleDuty = (id) => {
+            const s = db.staff.find(x => x.id === id);
+            if(prompt(`PIN ${s.nama}:`) !== s.pin) return alert("PIN SALAH!");
+            
+            const staffRef = ref(dbRT, `mj_system/staff/${id}`);
+            if(s.status === 'OFF') {
+                update(staffRef, { status: 'ON', lastIn: Date.now() });
+            } else {
+                const sessionSec = Math.floor((Date.now() - s.lastIn) / 1000);
+                update(staffRef, { 
+                    totalSec: (s.totalSec || 0) + sessionSec, 
+                    status: 'OFF' 
+                });
+            }
+        };
+
+        window.editStaff = (id) => {
+            const s = db.staff.find(x => x.id === id);
+            const newNama = prompt("Ubah Nama:", s.nama);
+            const newJabatan = prompt(`Ubah Jabatan (${Object.keys(db.rates).join(", ")}):`, s.jabatan);
+            const newPin = prompt("Ubah PIN:", s.pin);
+            if(newNama && newJabatan && newPin) {
+                update(ref(dbRT, `mj_system/staff/${id}`), {
+                    nama: newNama.toUpperCase(),
+                    jabatan: newJabatan,
+                    pin: newPin
+                });
+            }
+        };
+
+        window.deleteStaff = (id) => {
+            if(confirm('Hapus staff ini?')) remove(ref(dbRT, `mj_system/staff/${id}`));
+        };
+
+        window.submitLamaran = () => {
+            const n = document.getElementById('app-nama').value;
+            const c = document.getElementById('app-contact').value;
+            const b = document.getElementById('app-bio').value;
+            if(!n || !c) return alert("Nama dan Kontak wajib diisi!");
+
+            const newAppRef = push(ref(dbRT, 'mj_system/applicants'));
+            set(newAppRef, {
+                id: newAppRef.key,
+                nama: n.toUpperCase(),
+                contact: c,
+                alasan: b
+            });
+
+            alert("Lamaran terkirim!");
+            closeModal('modal-lamaran');
+            document.getElementById('app-nama').value = "";
+            document.getElementById('app-contact').value = "";
+            document.getElementById('app-bio').value = "";
+        };
+
+        window.approve = (id) => {
+            const a = db.applicants.find(x => x.id === id);
+            const newStaffRef = ref(dbRT, `mj_system/staff/${id}`);
+            set(newStaffRef, {
+                id: id,
+                nama: a.nama,
+                jabatan: "Recruit",
+                pin: "1234",
+                status: "OFF",
+                totalSec: 0,
+                lastIn: 0
+            });
+            remove(ref(dbRT, `mj_system/applicants/${id}`));
+            alert(`${a.nama} disetujui!`);
+        };
+
+        window.rejectApp = (id) => {
+            if(confirm('Tolak lamaran?')) remove(ref(dbRT, `mj_system/applicants/${id}`));
+        };
+
+        window.toggleRecruitment = () => {
+            update(mjRef, { isRecruiting: !db.isRecruiting });
+        };
+
+        window.saveSalaryRates = () => {
+            const newRates = {};
+            Object.keys(db.rates).forEach(r => {
+                newRates[r] = parseInt(document.getElementById(`rate-${r}`).value) || 0;
+            });
+            update(ref(dbRT, 'mj_system/rates'), newRates);
+            alert("Gaji disimpan!");
+        };
+
+        window.saveRegulasi = () => {
+            const val = document.getElementById('edit-regulasi').value;
+            update(mjRef, { regulasi: val });
+            alert("Regulasi diupdate!");
+        };
+
+        window.resetWeeklyDuty = () => {
+            if(confirm("Reset semua jam kerja staff ke 0?")) {
+                db.staff.forEach(s => {
+                    update(ref(dbRT, `mj_system/staff/${s.id}`), { totalSec: 0, status: 'OFF' });
+                });
+            }
+        };
+
+        window.resetData = () => {
+            if(confirm("WIPE SEMUA DATA DI FIREBASE?")) {
+                set(mjRef, {
+                    isRecruiting: true,
+                    regulasi: "Utamakan Kualitas.",
+                    rates: { "Manager": 3000, "Expert": 2000, "Junior": 1000, "Recruit": 500 }
+                });
+                location.reload();
+            }
+        };
+
+        // --- RENDER ENGINE ---
+        function render() {
+            const bal = calculateBalance();
+            document.getElementById('bal-opr').innerText = "Rp " + Math.floor(bal.opr).toLocaleString();
+            document.getElementById('bal-gaji').innerText = "Rp " + Math.floor(bal.gaji).toLocaleString();
+            document.getElementById('bal-owner').innerText = "Rp " + Math.floor(bal.owner).toLocaleString();
+            document.getElementById('bal-total').innerText = "Rp " + Math.floor(bal.total).toLocaleString();
+
+            const sortedStaff = [...db.staff].sort((a, b) => (b.totalSec || 0) - (a.totalSec || 0));
+            document.getElementById('staff-leaderboard').innerHTML = sortedStaff.slice(0, 5).map((s, i) => `
+                <div class="flex items-center justify-between p-3 rounded-xl bg-white/5">
+                    <div class="flex items-center gap-3">
+                        <span class="font-retro text-xs ${i === 0 ? 'text-yellow-500' : 'text-gray-500'}">#${i+1}</span>
+                        <div>
+                            <p class="font-bold text-[10px] uppercase text-white">${s.nama}</p>
+                            <p class="text-[8px] text-gray-500 font-mono">${s.jabatan}</p>
+                        </div>
+                    </div>
+                    <p class="font-mono text-[10px] text-emerald-500">${Math.floor((s.totalSec||0)/60)}M</p>
+                </div>`).join('');
+
+            let totalPayroll = 0;
+            document.getElementById('adm-staff-list').innerHTML = db.staff.map(s => {
+                const mins = Math.floor((s.totalSec||0)/60);
+                const salary = mins * (db.rates[s.jabatan] || 0);
+                totalPayroll += salary;
+                return `
+                <tr class="border-b border-white/5 uppercase">
+                    <td class="p-6 font-bold text-[11px]">${s.nama}<br><span class="text-[8px] text-gray-500">${s.jabatan}</span></td>
+                    <td class="p-6 font-mono text-emerald-500 text-center font-bold">${s.pin}</td>
+                    <td class="p-6 text-center font-mono text-[11px]">${mins}M</td>
+                    <td class="p-6 text-right font-bold text-emerald-500 text-[11px]">Rp ${salary.toLocaleString()}</td>
+                    <td class="p-6 text-center">
+                        <div class="flex justify-center gap-3">
+                            <button onclick="editStaff('${s.id}')" class="text-blue-400 hover:scale-110"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteStaff('${s.id}')" class="text-red-500 hover:scale-110"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('total-payroll-amount').innerText = "Rp " + totalPayroll.toLocaleString();
+
+            document.getElementById('staff-portal-list').innerHTML = db.staff.map(s => `
+                <div onclick="toggleDuty('${s.id}')" class="glass-panel p-6 flex justify-between items-center cursor-pointer hover:bg-emerald-500/5 ${s.status==='ON' ? 'border-emerald-500' : ''}">
+                    <div>
+                        <p class="font-retro uppercase text-xs text-white">${s.nama}</p>
+                        <p class="font-mono text-[9px] text-gray-500">${s.jabatan} | ${Math.floor((s.totalSec||0)/60)}M</p>
+                    </div>
+                    <div class="w-2 h-2 rounded-full ${s.status==='ON' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}"></div>
+                </div>`).join('');
+
+            document.getElementById('log-list').innerHTML = db.logs.map(l => `
+                <tr class="border-b border-white/5">
+                    <td class="py-4 text-gray-500 text-[9px]">${l.date}</td>
+                    <td class="py-4 font-bold uppercase text-[10px]">${l.desc}</td>
+                    <td class="py-4 text-right font-bold ${l.type === 'withdraw' ? 'text-red-500' : 'text-emerald-500'}">Rp ${l.amt.toLocaleString()}</td>
+                    <td class="py-4 text-right">
+                        <button onclick="deleteLog('${l.id}')"><i class="fas fa-trash opacity-20 hover:opacity-100"></i></button>
+                    </td>
+                </tr>`).join('');
+
+            document.getElementById('notif-app').innerText = db.applicants.length;
+            document.getElementById('app-list-admin').innerHTML = db.applicants.map(a => `
+                <div class="glass-panel p-6 border border-emerald-500/30">
+                    <h4 class="font-retro text-sm text-emerald-500 uppercase mb-4">${a.nama}</h4>
+                    <div class="space-y-4">
+                        <div><p class="text-[8px] font-retro text-gray-500 uppercase">Kontak:</p><p class="font-mono text-xs text-white bg-black/40 p-2 rounded">${a.contact || '-'}</p></div>
+                        <div><p class="text-[8px] font-retro text-gray-500 uppercase">Alasan:</p><p class="font-mono text-[10px] text-gray-300 bg-black/40 p-3 rounded leading-relaxed whitespace-pre-wrap">${a.alasan || '-'}</p></div>
+                    </div>
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="approve('${a.id}')" class="flex-1 btn-emerald py-3 rounded-lg font-retro text-[10px]">APPROVE STAFF</button>
+                        <button onclick="rejectApp('${a.id}')" class="px-4 border border-red-500 text-red-500 py-3 rounded-lg font-retro text-[10px]">TOLAK</button>
+                    </div>
+                </div>`).join('');
+
+            document.getElementById('salary-settings-list').innerHTML = Object.keys(db.rates).map(r => `
+                <div class="flex justify-between items-center">
+                    <label class="font-retro text-[9px] text-gray-400">${r}</label>
+                    <input type="number" id="rate-${r}" value="${db.rates[r]}" class="w-24 p-2 rounded-lg text-[10px] font-mono text-right text-white">
+                </div>`).join('');
+
+            document.getElementById('regulasi-display').innerHTML = db.regulasi.split('\n').map(l => `
+                <div class="flex gap-2">
+                    <i class="fas fa-check-circle text-emerald-500 text-[10px] mt-1"></i>
+                    <p class="font-mono text-[10px] text-gray-300 uppercase">${l}</p>
+                </div>`).join('');
+            
+            document.getElementById('btn-rekrut-container').style.display = db.isRecruiting ? 'block' : 'none';
+            document.getElementById('toggle-rec-btn').innerText = db.isRecruiting ? "TUTUP LOWONGAN" : "BUKA LOWONGAN";
+            document.getElementById('toggle-rec-btn').className = `w-full p-4 rounded-xl font-retro text-[10px] border ${db.isRecruiting ? 'border-red-500 text-red-500' : 'border-emerald-500 text-emerald-500'}`;
+            document.getElementById('edit-regulasi').value = db.regulasi;
+        }
+
+        // Export Function
+        window.exportGajiWord = async () => {
+            const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, AlignmentType } = window.docx;
+            let rows = [ new TableRow({ children: [ new TableCell({ children: [new Paragraph("KARYAWAN")] }), new TableCell({ children: [new Paragraph("MENIT")] }), new TableCell({ children: [new Paragraph("TOTAL GAJI")] }) ] }) ];
+            db.staff.forEach(s => {
+                const mins = Math.floor((s.totalSec||0)/60);
+                rows.push(new TableRow({ children: [ new TableCell({ children: [new Paragraph(s.nama.toUpperCase())] }), new TableCell({ children: [new Paragraph(mins.toString())] }), new TableCell({ children: [new Paragraph("Rp " + (mins * (db.rates[s.jabatan]||0)).toLocaleString())] }) ] }));
+            });
+            const doc = new Document({ sections: [{ children: [ new Paragraph({ text: "LAPORAN GAJI MITRA JAYA", heading: "Heading1", alignment: AlignmentType.CENTER }), new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }) ] }] });
+            const blob = await Packer.toBlob(doc);
+            saveAs(blob, `Gaji_MitraJaya.docx`);
+        };
+
+    </script>
+</body>
+</html>
