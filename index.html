@@ -426,7 +426,7 @@
             }
         };
 
-        // --- RENDER ENGINE ---
+       // --- RENDER ENGINE ---
         function render() {
             const bal = calculateBalance();
             document.getElementById('bal-opr').innerText = "Rp " + Math.floor(bal.opr).toLocaleString();
@@ -449,14 +449,24 @@
 
             let totalPayroll = 0;
             document.getElementById('adm-staff-list').innerHTML = db.staff.map(s => {
-                const mins = Math.floor((s.totalSec||0)/60);
-                const salary = mins * (db.rates[s.jabatan] || 0);
+                const mins = Math.floor((s.totalSec || 0) / 60);
+                
+                // LOGIKA LIMIT 14 JAM (14 * 60 = 840 MENIT)
+                const cappedMins = Math.min(mins, 840); 
+                
+                // Pastikan rate terbaca sebagai angka (Integer)
+                const ratePerMinute = parseInt(db.rates[s.jabatan]) || 0;
+                const salary = cappedMins * ratePerMinute;
+                
                 totalPayroll += salary;
+                
                 return `
                 <tr class="border-b border-white/5 uppercase">
                     <td class="p-6 font-bold text-[11px]">${s.nama}<br><span class="text-[8px] text-gray-500">${s.jabatan}</span></td>
                     <td class="p-6 font-mono text-emerald-500 text-center font-bold">${s.pin}</td>
-                    <td class="p-6 text-center font-mono text-[11px]">${mins}M</td>
+                    <td class="p-6 text-center font-mono text-[11px]">
+                        ${mins}M ${mins >= 840 ? '<span class="text-red-500 block text-[7px] font-retro">MAX REACHED</span>' : ''}
+                    </td>
                     <td class="p-6 text-right font-bold text-emerald-500 text-[11px]">Rp ${salary.toLocaleString()}</td>
                     <td class="p-6 text-center">
                         <div class="flex justify-center gap-3">
@@ -520,13 +530,21 @@
             document.getElementById('edit-regulasi').value = db.regulasi;
         }
 
-        // Export Function
+        // Export Function Perbaikan
         window.exportGajiWord = async () => {
             const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, AlignmentType } = window.docx;
-            let rows = [ new TableRow({ children: [ new TableCell({ children: [new Paragraph("KARYAWAN")] }), new TableCell({ children: [new Paragraph("MENIT")] }), new TableCell({ children: [new Paragraph("TOTAL GAJI")] }) ] }) ];
+            let rows = [ new TableRow({ children: [ new TableCell({ children: [new Paragraph("KARYAWAN")] }), new TableCell({ children: [new Paragraph("MENIT (CAPPED 14H)")] }), new TableCell({ children: [new Paragraph("TOTAL GAJI")] }) ] }) ];
+            
             db.staff.forEach(s => {
-                const mins = Math.floor((s.totalSec||0)/60);
-                rows.push(new TableRow({ children: [ new TableCell({ children: [new Paragraph(s.nama.toUpperCase())] }), new TableCell({ children: [new Paragraph(mins.toString())] }), new TableCell({ children: [new Paragraph("Rp " + (mins * (db.rates[s.jabatan]||0)).toLocaleString())] }) ] }));
+                const mins = Math.floor((s.totalSec || 0) / 60);
+                const cappedMins = Math.min(mins, 840);
+                const salary = cappedMins * (parseInt(db.rates[s.jabatan]) || 0);
+                
+                rows.push(new TableRow({ children: [ 
+                    new TableCell({ children: [new Paragraph(s.nama.toUpperCase())] }), 
+                    new TableCell({ children: [new Paragraph(mins > 840 ? "840 (Limited)" : mins.toString())] }), 
+                    new TableCell({ children: [new Paragraph("Rp " + salary.toLocaleString())] }) 
+                ] }));
             });
             const doc = new Document({ sections: [{ children: [ new Paragraph({ text: "LAPORAN GAJI MITRA JAYA", heading: "Heading1", alignment: AlignmentType.CENTER }), new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }) ] }] });
             const blob = await Packer.toBlob(doc);
